@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doxreporter - Cyber Incident Reporting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=Acx0aUNeQWUnv95pEUugKVLjbXUYoD9IG3tDsddsYO0y67xIkJInKHcByCElEmO4DdJC5KwoOAl9i-Wi&components=hosted-buttons&enable-funding=venmo&currency=USD"></script>
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+      }
+      .hidden { display: none !important; }
+      .loading { opacity: 0.6; pointer-events: none; }
+      .form-disabled { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+      .toast {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        max-width: 400px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        padding: 1rem;
+      }
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 180px;
+        background-color: #1f2937;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        right: 0;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+      .promo-locked {
+        background-color: #fee;
+        cursor: not-allowed;
+      }
+      .timer-display {
+        font-family: monospace;
+        font-size: 14px;
+        color: #ef4444;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-blue-800 shadow-lg border-b-4 border-amber-700">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between py-4 md:h-24 space-y-4 md:space-y-0">
+          <div class="flex items-center">
+            <h1 class="font-bold text-amber-100 text-xl sm:text-2xl md:text-3xl leading-tight">
+              Doxreporter - Cyber Incident Reporting
+            </h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 md:gap-4">
+            <button id="nav-report" class="px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors duration-200 bg-amber-600 text-white hover:bg-amber-700">
+              Report Incident
+            </button>
+            <button id="nav-login" class="px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors duration-200 text-amber-100 hover:bg-blue-700">
+              Free Login
+            </button>
+            <button id="nav-subscribe" class="px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors duration-200 text-amber-100 hover:bg-blue-700">
+              Upgrade to Premium
+            </button>
+            <div id="user-status" class="hidden flex items-center space-x-2">
+              <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span class="text-sm font-medium text-green-400" id="user-email-display"></span>
+            </div>
+            <button id="modal-back-btn" class="hidden tooltip">
+              <svg class="w-6 h-6 text-amber-400 hover:text-amber-300 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span class="tooltiptext">Go back</span>
+            </button>
+            <button id="nav-logout" class="hidden tooltip">
+              <svg class="w-6 h-6 text-red-400 hover:text-red-300 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span class="tooltiptext">Log out and end session</span>
+            </button>
+            <button id="nav-refresh" class="px-3 py-2 rounded-lg text-sm font-medium text-amber-100 hover:bg-blue-700">
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Trial Expiry Modal -->
+    <div id="trial-expiry-modal" class="hidden modal-backdrop">
+      <div class="bg-white rounded-lg p-6 max-w-md w-full">
+        <div class="text-center">
+          <svg class="mx-auto h-12 w-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h3 class="mt-4 text-lg font-medium text-gray-900">Your Free Trial Has Ended</h3>
+          <p class="mt-2 text-sm text-gray-600">
+            Start your subscription to continue accessing premium features.
+          </p>
+          <div class="mt-6 flex gap-3">
+            <button id="trial-subscribe-btn" class="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">
+              Subscribe Now
+            </button>
+            <button id="trial-logout-btn" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300">
+              Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div class="bg-white rounded-xl shadow-lg border-2 border-blue-200 p-4 md:p-6">
+        
+        <!-- Report Incident Form -->
+        <div id="incident-form">
+          <div class="max-w-2xl mx-auto">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">Report a Cyber Incident</h2>
+              <p class="text-sm text-gray-600">(Anonymized on the blockchain)</p>
+            </div>
+
+            <div id="login-required-message" class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-blue-700">
+                    <strong>Please login to submit an incident report.</strong> Click the "Free Login" button above to get started.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-amber-700">
+                    <strong>Important:</strong> Report incidents as soon as discovered. Include all relevant technical details and any immediate actions taken.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <form id="incident-report-form" class="space-y-6 form-disabled">
+              <div id="location-display" class="hidden rounded-md bg-blue-50 p-4 border border-blue-200">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-blue-800">Your Location</p>
+                    <p class="mt-1 text-sm text-blue-700 font-mono">
+                      <span id="latitude-display"></span>, <span id="longitude-display"></span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label for="incident-description" class="block text-sm font-medium text-gray-700 mb-2">Incident Description</label>
+                <textarea id="incident-description" required rows="5" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Please provide detailed information..."></textarea>
+              </div>
+
+              <div>
+                <label for="severity" class="block text-sm font-medium text-gray-700 mb-2">Severity</label>
+                <select id="severity" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="incident-date" class="block text-sm font-medium text-gray-700 mb-2">Date of Incident</label>
+                <input type="date" id="incident-date" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+              </div>
+
+              <div>
+                <label for="region" class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                <select id="region" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  <option value="western">Western</option>
+                  <option value="russian">Russian</option>
+                  <option value="chinese">Chinese</option>
+                  <option value="indian">Indian</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="incident-type" class="block text-sm font-medium text-gray-700 mb-2">Incident Type</label>
+                <select id="incident-type" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  <option value="">Select Incident Type</option>
+                  <option value="Malware Attack">Malware Attack</option>
+                  <option value="Phishing Campaign">Phishing Campaign</option>
+                  <option value="Data Breach">Data Breach</option>
+                  <option value="DDoS Attack">DDoS Attack</option>
+                  <option value="Ransomware">Ransomware</option>
+                  <option value="Social Engineering">Social Engineering</option>
+                  <option value="Zero-day Exploit">Zero-day Exploit</option>
+                  <option value="Supply Chain Attack">Supply Chain Attack</option>
+                  <option value="Insider Threat">Insider Threat</option>
+                  <option value="APT (Advanced Persistent Threat)">APT (Advanced Persistent Threat)</option>
+                  <option value="Cloud Security Incident">Cloud Security Incident</option>
+                  <option value="IoT Device Compromise">IoT Device Compromise</option>
+                  <option value="Phone Hacking">Phone Hacking</option>
+                  <option value="Network Intrusion">Network Intrusion</option>
+                </select>
+              </div>
+
+              <div id="error-message" class="hidden rounded-md bg-red-50 p-4 border border-red-200">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800" id="error-text"></p>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" id="submit-incident" class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-150">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Submit Report
+              </button>
+
+              <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p class="text-sm text-gray-600">
+                  You are using the <strong id="user-tier">free</strong> version. 
+                  <a href="#" id="upgrade-link" class="text-blue-600 hover:text-blue-800 font-medium ml-1">Upgrade to Premium</a>
+                  to receive incident report links via email on demand.
+                </p>
+              </div>
+            </form>
+
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-6">
+              <div class="flex items-center mb-4">
+                <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-900">Regional Contact Information</h3>
+              </div>
+              <div id="agency-info" class="space-y-3">
+                <div>
+                  <p class="font-medium text-gray-700" id="agency-name"></p>
+                  <p class="text-sm text-gray-600" id="agency-coords"></p>
+                </div>
+                <div class="border-t border-gray-200 pt-3">
+                  <p class="text-sm font-medium text-gray-700 mb-2">Contact Details:</p>
+                  <p class="text-sm text-gray-600">Phone: <span id="agency-phone"></span></p>
+                  <p class="text-sm text-gray-600">Email: <span id="agency-email"></span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+<!-- Premium Upgrade Form -->
+        <div id="subscription-form" class="hidden">
+          <div class="max-w-2xl mx-auto">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">Upgrade to Premium</h2>
+              <p class="text-sm text-gray-600">Get instant notifications for incident reports</p>
+            </div>
+
+            <!-- Trial Availability Banner -->
+            <div class="mb-6 rounded-md bg-purple-50 p-4 border border-purple-200">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-purple-700">
+                    <strong>Limited free trials available.</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-6 rounded-md bg-blue-50 p-4 border border-blue-200">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm text-blue-700">
+                    Subscribe to automatically receive Web3 report links via email and get unlimited incident reporting capabilities.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <form id="subscription-signup-form" class="space-y-6">
+              <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <label class="flex items-start cursor-pointer">
+                  <input type="checkbox" id="use-free-option" class="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
+                  <span class="ml-3 text-sm text-gray-700">
+                    <strong>Free option:</strong> Send Web3 report link to primary email only (one-time) instead of $3.95/month for unlimited reports
+                  </span>
+                </label>
+              </div>
+
+              <div id="premium-fields">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-3">Web3 Report Link Recipients</label>
+                  
+                  <label class="flex items-center mb-4 p-3 bg-gray-50 rounded border border-gray-200 cursor-pointer hover:bg-gray-100">
+                    <input type="checkbox" id="use-primary-email" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
+                    <span class="ml-2 text-sm text-gray-700">Send to primary email</span>
+                  </label>
+
+                  <div id="email-list" class="space-y-3">
+                    <div class="flex gap-2">
+                      <input type="email" class="email-input flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Enter email address" />
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between mt-3">
+                    <span class="text-xs text-gray-500">Up to 3 additional emails</span>
+                    <button type="button" id="add-email-btn" class="text-sm font-medium text-blue-600 hover:text-blue-800">Add another email</button>
+                  </div>
+                </div>
+
+                <div class="space-y-3 mt-6">
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-gray-600">Automatic incident report forwarding to specified emails</span>
+                  </div>
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-gray-600">Secure Web3 report link delivery monthly</span>
+                  </div>
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-gray-600">Priority support with faster response times</span>
+                  </div>
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-gray-600">Advanced analytics for incident reports</span>
+                  </div>
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-gray-600">Blockchain verification with immutable proof</span>
+                  </div>
+                </div>
+
+                <div class="text-center bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200 mt-6">
+                  <div class="text-4xl font-bold text-indigo-600">$3.95</div>
+                  <div class="text-base text-gray-600 mt-2">per month, billed monthly</div>
+                </div>
+              </div>
+
+              <button type="submit" id="submit-subscription" class="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-150">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span id="submit-button-text">Proceed to Payment</span>
+              </button>
+
+              <p class="text-xs text-gray-500 text-center">Secure payment powered by PayPal. Cancel anytime.</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="hidden modal-backdrop">
+      <div class="bg-white rounded-lg p-6 max-w-md w-full relative">
+        <button id="close-auth-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h2 class="text-2xl font-bold mb-6 text-gray-900">Email Verification</h2>
+
+        <div id="email-step">
+          <form id="email-form" class="space-y-4">
+            <div>
+              <label for="auth-email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+              <input type="email" id="auth-email" required class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="your@email.com" />
+            </div>
+            <button type="submit" id="send-code-btn" class="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed">
+              Send Verification Code
+            </button>
+          </form>
+        </div>
+
+        <div id="code-step" class="hidden">
+          <form id="code-form" class="space-y-4">
+            <p class="text-sm text-gray-600 mb-4">
+              We've sent a verification code to <strong id="email-display"></strong>
+            </p>
+            
+            <!-- OTP Timer -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-center">
+              <p class="text-sm text-yellow-800">
+                Time remaining: <span id="otp-timer" class="timer-display">5:00</span>
+              </p>
+              <p class="text-xs text-yellow-600 mt-1">Attempts remaining: <span id="otp-attempts">3</span></p>
+            </div>
+            
+            <div>
+              <label for="verification-code" class="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
+              <input type="text" id="verification-code" required maxlength="6" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-center text-2xl tracking-widest" placeholder="000000" />
+            </div>
+
+            <div id="auth-error" class="hidden rounded-md bg-red-50 p-3 border border-red-200">
+              <p class="text-sm text-red-800" id="auth-error-text"></p>
+            </div>
+
+            <button type="submit" id="verify-code-btn" class="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400 disabled:cursor-not-allowed">
+              Verify and Sign In
+            </button>
+
+            <div class="flex gap-2">
+              <button type="button" id="resend-code-btn" class="flex-1 text-sm text-indigo-600 hover:text-indigo-800 py-2 border border-indigo-300 rounded">
+                Resend Code
+              </button>
+              <button type="button" id="cancel-otp-btn" class="flex-1 text-sm text-gray-600 hover:text-gray-800 py-2 border border-gray-300 rounded">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- PayPal Payment Modal -->
+    <div id="payment-modal" class="hidden modal-backdrop">
+      <div class="bg-white rounded-lg p-6 max-w-md w-full relative">
+        <button id="close-payment-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h2 class="text-2xl font-bold mb-6 text-gray-900">Complete Your Subscription</h2>
+
+        <!-- Promo Code Section -->
+        <div id="promo-section" class="mb-6">
+          <div class="border-t border-gray-200 pt-4">
+            <label for="promo-code-input" class="block text-sm font-medium text-gray-700 mb-2">
+              Have a promo code? <span class="text-xs text-gray-500">(p = trial, n = lifetime)</span>
+            </label>
+            <div class="flex gap-2">
+              <input 
+                type="text" 
+                id="promo-code-input" 
+                maxlength="16"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm lowercase"
+                placeholder="Enter code (8-16 chars)"
+              />
+              <button 
+                type="button" 
+                id="apply-promo-btn" 
+                class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Apply
+              </button>
+            </div>
+            <p id="promo-attempts-display" class="text-xs text-gray-500 mt-1">Attempts remaining: <span id="promo-attempts">5</span></p>
+            <div id="promo-error" class="hidden mt-2 text-sm text-red-600"></div>
+            <div id="promo-success" class="hidden mt-2 text-sm text-green-600"></div>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <p class="text-gray-600 mb-4">You're about to subscribe to our Premium plan for $3.95/month.</p>
+          <ul class="space-y-2 text-sm text-gray-600 mb-6">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span>Automatic incident report forwarding</span>
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span>Secure Web3 report link delivery</span>
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span>Priority support</span>
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <span>Blockchain verification</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- PayPal Button Container -->
+        <div id="paypal-button-container" class="mb-4"></div>
+        
+        <p class="text-xs text-gray-500 text-center">Secure payment powered by PayPal. Cancel anytime.</p>
+        <p id="payment-attempts-display" class="text-xs text-red-500 text-center mt-2 hidden">
+          Payment attempts remaining: <span id="payment-attempts">3</span>
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Configuration
+      const CONFIG = {
+        API_BASE: '/.netlify/functions',
+        MAX_EMAILS: 3,
+        OTP_EXPIRY_MINUTES: 5,
+        OTP_MAX_ATTEMPTS: 3,
+        PROMO_MAX_ATTEMPTS: 5,
+        PAYMENT_MAX_ATTEMPTS: 3,
+        PROMO_COOLDOWN_MINUTES: 15
+      };
+
+      // Agency contacts data
+      const AGENCY_CONTACTS = {
+        western: {
+          name: "NRO (National Reconnaissance Office)",
+          phone: "+1 (703) 808-5100",
+          email: "info@nro.mil",
+          coordinates: "38.8829° N, 77.4528° W"
+        },
+        russian: {
+          name: "FSB Cyber Security Center",
+          phone: "+7 (495) 224-22-22",
+          email: "cyber@fsb.ru",
+          coordinates: "55.7558° N, 37.6173° E"
+        },
+        chinese: {
+          name: "National Computer Network Emergency Response Technical Team",
+          phone: "+86 (10) 8299-9000",
+          email: "cert@cert.org.cn",
+          coordinates: "39.9042° N, 116.4074° E"
+        },
+        indian: {
+          name: "CERT-In (Indian Computer Emergency Response Team)",
+          phone: "+91 (11) 2430-0442",
+          email: "info@cert-in.org.in",
+          coordinates: "28.6139° N, 77.2090° E"
+        }
+      };
+
+      // Global state
+      let currentCoordinates = null;
+      let emailCount = 1;
+      let currentUser = null;
+      let isPremium = false;
+      let currentEmail = '';
+      let otpTimer = null;
+      let otpTimeRemaining = CONFIG.OTP_EXPIRY_MINUTES * 60;
+      let otpAttemptsRemaining = CONFIG.OTP_MAX_ATTEMPTS;
+      let promoAttemptsRemaining = CONFIG.PROMO_MAX_ATTEMPTS;
+      let paymentAttemptsRemaining = CONFIG.PAYMENT_MAX_ATTEMPTS;
+      let promoCodeRedeemed = false;
+      let modalStack = [];
+      let isTrialSubscription = false;
+
+// ============================================
+      // UTILITY FUNCTIONS
+      // ============================================
+
+      function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        errorText.textContent = message;
+        errorDiv.classList.remove('hidden');
+        setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+      }
+
+      function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        const colors = {
+          success: 'bg-green-50 border-green-200 text-green-800',
+          warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+          error: 'bg-red-50 border-red-200 text-red-800'
+        };
+        toast.className = `toast ${colors[type]} border rounded-lg shadow-lg p-4`;
+        toast.innerHTML = `
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                ${type === 'success' 
+                  ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />'
+                  : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />'
+                }
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium">${message}</p>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+      }
+
+      function enableForm() {
+        const form = document.getElementById('incident-report-form');
+        form.classList.remove('form-disabled');
+        document.getElementById('login-required-message').classList.add('hidden');
+      }
+
+      function disableForm() {
+        const form = document.getElementById('incident-report-form');
+        form.classList.add('form-disabled');
+        document.getElementById('login-required-message').classList.remove('hidden');
+      }
+
+      function updateUIForLoggedInUser() {
+        document.getElementById('nav-login').classList.add('hidden');
+        document.getElementById('user-status').classList.remove('hidden');
+        document.getElementById('nav-logout').classList.remove('hidden');
+        document.getElementById('user-email-display').textContent = currentUser?.email || '';
+        document.getElementById('user-tier').textContent = isPremium ? 'premium' : 'free';
+        enableForm();
+      }
+
+      function updateUIForLoggedOutUser() {
+        document.getElementById('nav-login').classList.remove('hidden');
+        document.getElementById('user-status').classList.add('hidden');
+        document.getElementById('nav-logout').classList.add('hidden');
+        document.getElementById('user-tier').textContent = 'free';
+        disableForm();
+      }
+
+      async function getCurrentPosition() {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0
+            });
+          });
+          return {
+            latitude: parseFloat(position.coords.latitude.toFixed(5)),
+            longitude: parseFloat(position.coords.longitude.toFixed(5))
+          };
+        } catch (error) {
+          console.warn('Location access denied or unavailable');
+          return { latitude: null, longitude: null };
+        }
+      }
+
+      async function updateLocationDisplay() {
+        const coords = await getCurrentPosition();
+        currentCoordinates = coords;
+        if (coords.latitude && coords.longitude) {
+          document.getElementById('latitude-display').textContent = coords.latitude;
+          document.getElementById('longitude-display').textContent = coords.longitude;
+          document.getElementById('location-display').classList.remove('hidden');
+        }
+      }
+
+      function updateAgencyInfo(region) {
+        const agency = AGENCY_CONTACTS[region];
+        document.getElementById('agency-name').textContent = agency.name;
+        document.getElementById('agency-coords').textContent = `Coordinates: ${agency.coordinates}`;
+        document.getElementById('agency-phone').textContent = agency.phone;
+        document.getElementById('agency-email').textContent = agency.email;
+      }
+
+      // ============================================
+      // PROMO CODE FUNCTIONS
+      // ============================================
+
+      function validatePromoCodeFormat(code) {
+        // Must be 8-16 characters
+        if (code.length < 8 || code.length > 16) return false;
+        
+        // Client-side regex pre-check
+        const promoRegex = /^[a-z0-9!@#$%&*?]{8,16}$/;
+        if (!promoRegex.test(code)) return false;
+
+        const consonants = code.match(/[bcdfghjklmnpqrstvwxz]/g) || [];
+        const vowels = code.match(/[aeiou]/g) || [];
+        const uppercase = code.match(/[A-Z]/g) || [];
+        const digits = code.match(/[0-9]/g) || [];
+        const symbols = code.match(/[!@#$%&*?]/g) || [];
+
+        // Must contain 'p' (trial) or 'n' (lifetime)
+        const hasP = code.includes('p');
+        const hasN = code.includes('n');
+        
+        return consonants.length >= 3 && (hasP || hasN) && vowels.length >= 2 && 
+               digits.length >= 2 && symbols.length >= 1;
+      }
+
+      function isTrialPromoCode(code) {
+        return code.includes('p');
+      }
+
+      function lockPromoInput() {
+        const promoInput = document.getElementById('promo-code-input');
+        const applyBtn = document.getElementById('apply-promo-btn');
+        promoInput.disabled = true;
+        applyBtn.disabled = true;
+        promoInput.classList.add('promo-locked');
+        document.getElementById('promo-error').textContent = 'Code not valid';
+        document.getElementById('promo-error').classList.remove('hidden');
+        
+        // Set cooldown timer
+        const cooldownEnd = Date.now() + (CONFIG.PROMO_COOLDOWN_MINUTES * 60 * 1000);
+        const cooldownTimer = setInterval(() => {
+          const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
+          if (remaining <= 0) {
+            clearInterval(cooldownTimer);
+            promoAttemptsRemaining = CONFIG.PROMO_MAX_ATTEMPTS;
+            promoInput.disabled = false;
+            applyBtn.disabled = false;
+            promoInput.classList.remove('promo-locked');
+            document.getElementById('promo-attempts').textContent = promoAttemptsRemaining;
+            document.getElementById('promo-error').classList.add('hidden');
+          } else {
+            document.getElementById('promo-error').textContent = `Too many attempts. Try again in ${Math.ceil(remaining / 60)} minutes.`;
+          }
+        }, 1000);
+      }
+
+      function hidePromoField() {
+        document.getElementById('promo-section').style.display = 'none';
+      }
+
+      async function applyPromoCode() {
+        const promoInput = document.getElementById('promo-code-input');
+        let promoCode = promoInput.value.trim().toLowerCase();
+        
+        // Clear previous messages
+        document.getElementById('promo-error').classList.add('hidden');
+        document.getElementById('promo-success').classList.add('hidden');
+
+        // Client-side format validation
+        if (!validatePromoCodeFormat(promoCode)) {
+          promoAttemptsRemaining--;
+          document.getElementById('promo-attempts').textContent = promoAttemptsRemaining;
+          document.getElementById('promo-error').textContent = 'Code not valid';
+          document.getElementById('promo-error').classList.remove('hidden');
+          
+          if (promoAttemptsRemaining <= 0) {
+            lockPromoInput();
+          }
+          return;
+        }
+
+        // Check if it's a trial code
+        isTrialSubscription = isTrialPromoCode(promoCode);
+
+        try {
+          const response = await fetch(`${CONFIG.API_BASE}/promo-validate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.sessionToken}`
+            },
+            body: JSON.stringify({ promoCode })
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            document.getElementById('promo-success').textContent = result.message;
+            document.getElementById('promo-success').classList.remove('hidden');
+            promoCodeRedeemed = true;
+            isPremium = true;
+            hidePromoField();
+            
+            setTimeout(() => {
+              closePaymentModal();
+              updateUIForLoggedInUser();
+              showToast('Premium access activated!');
+              
+              if (isTrialSubscription) {
+                showToast('Your 1-month trial has started. You will be prompted to subscribe after the trial period.', 'warning');
+              }
+            }, 2000);
+          } else {
+            // Always show generic error
+            promoAttemptsRemaining--;
+            document.getElementById('promo-attempts').textContent = promoAttemptsRemaining;
+            document.getElementById('promo-error').textContent = 'Code not valid';
+            document.getElementById('promo-error').classList.remove('hidden');
+            
+            if (promoAttemptsRemaining <= 0) {
+              lockPromoInput();
+            }
+          }
+        } catch (error) {
+          console.error('Promo validation error:', error);
+          promoAttemptsRemaining--;
+          document.getElementById('promo-attempts').textContent = promoAttemptsRemaining;
+          document.getElementById('promo-error').textContent = 'Code not valid';
+          document.getElementById('promo-error').classList.remove('hidden');
+          
+          if (promoAttemptsRemaining <= 0) {
+            lockPromoInput();
+          }
+        }
+      }
+
+      // ============================================
+      // OTP TIMER FUNCTIONS
+      // ============================================
+
+      function startOTPTimer() {
+        otpTimeRemaining = CONFIG.OTP_EXPIRY_MINUTES * 60;
+        updateOTPTimerDisplay();
+        
+        otpTimer = setInterval(() => {
+          otpTimeRemaining--;
+          updateOTPTimerDisplay();
+          
+          if (otpTimeRemaining <= 0) {
+            clearInterval(otpTimer);
+            showToast('Verification code expired. Please request a new one.', 'error');
+            returnToLogin();
+          }
+        }, 1000);
+      }
+
+      function updateOTPTimerDisplay() {
+        const minutes = Math.floor(otpTimeRemaining / 60);
+        const seconds = otpTimeRemaining % 60;
+        document.getElementById('otp-timer').textContent = 
+          `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+
+      function stopOTPTimer() {
+        if (otpTimer) {
+          clearInterval(otpTimer);
+          otpTimer = null;
+        }
+      }
+
+      function returnToLogin() {
+        stopOTPTimer();
+        closeAuthModal();
+        otpAttemptsRemaining = CONFIG.OTP_MAX_ATTEMPTS;
+        promoAttemptsRemaining = CONFIG.PROMO_MAX_ATTEMPTS;
+        paymentAttemptsRemaining = CONFIG.PAYMENT_MAX_ATTEMPTS;
+        showIncidentForm();
+      }
+
+      // ============================================
+      // AUTHENTICATION FUNCTIONS
+      // ============================================
+
+      async function sendVerificationCode(email) {
+        const response = await fetch(`${CONFIG.API_BASE}/auth-send-code`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email })
+        });
+        return response.json();
+      }
+
+      async function verifyCode(email, code) {
+        const response = await fetch(`${CONFIG.API_BASE}/auth-verify-code`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email, code })
+        });
+        const data = await response.json();
+        if (data.sessionToken) {
+          return data;
+        }
+        throw new Error('Verification failed');
+      }
+
+      async function handleEmailSubmit(event) {
+        event.preventDefault();
+        const email = document.getElementById('auth-email').value;
+        const submitBtn = document.getElementById('send-code-btn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+        
+        try {
+          currentEmail = email;
+          const result = await sendVerificationCode(email);
+          
+          if (result.success) {
+            modalStack.push('email-step');
+            document.getElementById('email-step').classList.add('hidden');
+            document.getElementById('code-step').classList.remove('hidden');
+            document.getElementById('email-display').textContent = email;
+            document.getElementById('modal-back-btn').classList.remove('hidden');
+            startOTPTimer();
+            showToast('Verification code sent to your email');
+          } else {
+            showError('Failed to send verification code');
+          }
+        } catch (error) {
+          console.error('Email send error:', error);
+          showError('Failed to send verification code');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Verification Code';
+        }
+      }
+
+      async function handleCodeVerification(event) {
+        event.preventDefault();
+        const code = document.getElementById('verification-code').value;
+        const submitBtn = document.getElementById('verify-code-btn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying...';
+        
+        try {
+          const result = await verifyCode(currentEmail, code);
+          
+          if (result.success) {
+            stopOTPTimer();
+            currentUser = {
+              id: result.user.id,
+              email: result.user.email,
+              sessionToken: result.sessionToken
+            };
+            
+            // Check for trial expiry
+            await checkTrialExpiry();
+            
+            closeAuthModal();
+            updateUIForLoggedInUser();
+            showToast('Successfully logged in!');
+          } else {
+            throw new Error('Invalid code');
+          }
+        } catch (error) {
+          console.error('Verification error:', error);
+          otpAttemptsRemaining--;
+          document.getElementById('otp-attempts').textContent = otpAttemptsRemaining;
+          
+          const errorDiv = document.getElementById('auth-error');
+          const errorText = document.getElementById('auth-error-text');
+          errorText.textContent = otpAttemptsRemaining > 0 
+            ? `Invalid verification code. ${otpAttemptsRemaining} attempts remaining.`
+            : 'Maximum attempts reached.';
+          errorDiv.classList.remove('hidden');
+          
+          if (otpAttemptsRemaining <= 0) {
+            setTimeout(() => returnToLogin(), 2000);
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Verify and Sign In';
+        }
+      }
+
+      async function checkTrialExpiry() {
+        try {
+          const response = await fetch(`${CONFIG.API_BASE}/check-subscription`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.sessionToken}`
+            }
+          });
+          
+          const data = await response.json();
+          
+          if (data.subscription_status === 'trial' && data.trial_expired) {
+            // Show trial expiry modal
+            document.getElementById('trial-expiry-modal').classList.remove('hidden');
+            isPremium = false;
+          } else if (data.subscription_status === 'active') {
+            isPremium = true;
+          } else {
+            isPremium = false;
+          }
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+          isPremium = false;
+        }
+      }
+
+      // ============================================
+      // MODAL NAVIGATION FUNCTIONS
+      // ============================================
+
+      function handleModalBack() {
+        if (modalStack.length === 0) return;
+        
+        const currentModal = modalStack.pop();
+        
+        if (currentModal === 'code-step') {
+          // Go back from OTP to email
+          stopOTPTimer();
+          document.getElementById('code-step').classList.add('hidden');
+          document.getElementById('email-step').classList.remove('hidden');
+          if (modalStack.length === 0) {
+            document.getElementById('modal-back-btn').classList.add('hidden');
+          }
+        } else if (currentModal === 'payment-modal') {
+          // Go back from payment to subscription form
+          closePaymentModal();
+          showSubscriptionForm();
+        }
+      }
+
+      function openAuthModal() {
+        modalStack = [];
+        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('email-step').classList.remove('hidden');
+        document.getElementById('code-step').classList.add('hidden');
+        document.getElementById('auth-error').classList.add('hidden');
+        document.getElementById('modal-back-btn').classList.add('hidden');
+      }
+
+      function closeAuthModal() {
+        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('email-form').reset();
+        document.getElementById('code-form').reset();
+        document.getElementById('auth-error').classList.add('hidden');
+        document.getElementById('modal-back-btn').classList.add('hidden');
+        stopOTPTimer();
+        modalStack = [];
+      }
+
+      function closePaymentModal() {
+        document.getElementById('payment-modal').classList.add('hidden');
+        if (modalStack.length > 0 && modalStack[modalStack.length - 1] === 'payment-modal') {
+          modalStack.pop();
+        }
+      }
+
+      // ============================================
+      // INCIDENT SUBMISSION FUNCTIONS
+      // ============================================
+
+      async function submitIncidentToNeon(incidentData) {
+        const response = await fetch(`${CONFIG.API_BASE}/incidents-create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.sessionToken}`
+          },
+          body: JSON.stringify(incidentData)
+        });
+        return response.json();
+      }
+
+      async function handleIncidentSubmit(event) {
+        event.preventDefault();
+        
+        if (!currentUser) {
+          showError('Please login to submit an incident report');
+          openAuthModal();
+          return;
+        }
+        
+        const submitBtn = document.getElementById('submit-incident');
+        const originalHTML = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+        
+        try {
+          const coords = currentCoordinates || await getCurrentPosition();
+          
+          const incidentData = {
+            user_id: currentUser.id,
+            user_email: currentUser.email,
+            description: document.getElementById('incident-description').value,
+            severity: document.getElementById('severity').value,
+            timestamp: document.getElementById('incident-date').value,
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            incident_type: document.getElementById('incident-type').value,
+            created_at: new Date().toISOString()
+          };
+          
+          const result = await submitIncidentToNeon(incidentData);
+          
+          if (result.success) {
+            showToast('Incident reported successfully!');
+            if (result.gcsUrl) {
+              showToast(`Blockchain link: ${result.gcsUrl}`, 'success');
+            }
+            
+            if (!coords.latitude || !coords.longitude) {
+              showToast('Note: Location was not provided', 'warning');
+            }
+            
+            // Reset form
+            document.getElementById('incident-report-form').reset();
+            document.getElementById('incident-date').value = new Date().toISOString().split('T')[0];
+            updateAgencyInfo('western');
+          }
+        } catch (error) {
+          console.error('Submission error:', error);
+          showError('Failed to submit incident report. Please try again.');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHTML;
+        }
+      }
+
+      // ============================================
+      // SUBSCRIPTION FUNCTIONS
+      // ============================================
+
+      function addEmailField() {
+        if (emailCount >= CONFIG.MAX_EMAILS) {
+          showToast('Maximum of 3 additional emails allowed', 'error');
+          return;
+        }
+        
+        const emailList = document.getElementById('email-list');
+        const newEmailDiv = document.createElement('div');
+        newEmailDiv.className = 'flex gap-2';
+        newEmailDiv.innerHTML = `
+          <input type="email" class="email-input flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Enter email address" />
+          <button type="button" class="remove-email-btn px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm font-medium">Remove</button>
+        `;
+        emailList.appendChild(newEmailDiv);
+        emailCount++;
+        
+        newEmailDiv.querySelector('.remove-email-btn').addEventListener('click', function() {
+          newEmailDiv.remove();
+          emailCount--;
+          document.getElementById('add-email-btn').disabled = false;
+        });
+        
+        document.getElementById('add-email-btn').disabled = emailCount >= CONFIG.MAX_EMAILS;
+      }
+
+      async function handleSubscriptionSubmit(event) {
+        event.preventDefault();
+        
+        const submitBtn = document.getElementById('submit-subscription');
+        const submitBtnText = document.getElementById('submit-button-text');
+        const originalText = submitBtnText.textContent;
+        submitBtn.disabled = true;
+        submitBtnText.textContent = 'Processing...';
+        
+        try {
+          const useFree = document.getElementById('use-free-option').checked;
+          
+          if (useFree) {
+            showToast('Free option selected. Web3 report link will be sent after your first incident submission.');
+            document.getElementById('subscription-signup-form').reset();
+            emailCount = 1;
+            submitBtn.disabled = false;
+            submitBtnText.textContent = originalText;
+            return;
+          }
+          
+          if (!currentUser) {
+            showToast('Please login to subscribe', 'error');
+            openAuthModal();
+            submitBtn.disabled = false;
+            submitBtnText.textContent = originalText;
+            return;
+          }
+          
+          const usePrimary = document.getElementById('use-primary-email').checked;
+          const emailInputs = document.querySelectorAll('#email-list .email-input');
+          const emails = Array.from(emailInputs)
+            .map(input => input.value.trim())
+            .filter(email => email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+          
+          if (!usePrimary && emails.length === 0) {
+            showError('Please enter at least one valid email or select primary email');
+            submitBtn.disabled = false;
+            submitBtnText.textContent = originalText;
+            return;
+          }
+          
+          // Save emails first
+          const response = await fetch(`${CONFIG.API_BASE}/subscriptions-create`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentUser.sessionToken}`
+            },
+            body: JSON.stringify({
+              emails: usePrimary ? [currentUser.email, ...emails] : emails,
+              usePrimaryEmail: usePrimary
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            modalStack.push('payment-modal');
+            document.getElementById('payment-modal').classList.remove('hidden');
+            document.getElementById('modal-back-btn').classList.remove('hidden');
+            initializePayPalButtons(result.userId);
+          }
+          
+        } catch (error) {
+          console.error('Subscription error:', error);
+          showError('An error occurred. Please try again.');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtnText.textContent = originalText;
+        }
+      }
+
+      // ============================================
+      // PAYPAL FUNCTIONS
+      // ============================================
+
+      function initializePayPalButtons(userId) {
+        if (typeof paypal === 'undefined') {
+          console.error('PayPal SDK not loaded');
+          return;
+        }
+
+        // Check if promo was already redeemed
+        if (promoCodeRedeemed) {
+          hidePromoField();
+        }
+
+        document.getElementById('paypal-button-container').innerHTML = '';
+
+        paypal.Buttons({
+          style: {
+            shape: 'rect',
+            color: 'blue',
+            layout: 'vertical',
+            label: 'subscribe'
+          },
+          createSubscription: function(data, actions) {
+            return actions.subscription.create({
+              'plan_id': 'P-XXXXXXXXXXXXX', // Replace with your PayPal Plan ID
+              'custom_id': userId
+            });
+          },
+          onApprove: function(data, actions) {
+            console.log('Subscription approved:', data.subscriptionID);
+            showToast('Subscription activated! Thank you for upgrading to Premium.');
+            isPremium = true;
+            updateUIForLoggedInUser();
+            closePaymentModal();
+            return fetch(`${CONFIG.API_BASE}/subscriptions-verify`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.sessionToken}`
+              },
+              body: JSON.stringify({
+                subscriptionId: data.subscriptionID
+              })
+            });
+          },
+          onError: function(err) {
+            console.error('PayPal error:', err);
+            paymentAttemptsRemaining--;
+            
+            if (paymentAttemptsRemaining > 0) {
+              document.getElementById('payment-attempts-display').classList.remove('hidden');
+              document.getElementById('payment-attempts').textContent = paymentAttemptsRemaining;
+              showToast(`Payment failed. ${paymentAttemptsRemaining} attempts remaining.`, 'error');
+            } else {
+              showToast('Maximum payment attempts reached. Returning to login.', 'error');
+              setTimeout(() => {
+                closePaymentModal();
+                returnToLogin();
+              }, 2000);
+            }
+          }
+        }).render('#paypal-button-container');
+      }
+
+      // ============================================
+      // NAVIGATION FUNCTIONS
+      // ============================================
+
+      function showIncidentForm() {
+        document.getElementById('incident-form').classList.remove('hidden');
+        document.getElementById('subscription-form').classList.add('hidden');
+        updateNavActiveState('nav-report');
+      }
+
+      function showSubscriptionForm() {
+        document.getElementById('incident-form').classList.add('hidden');
+        document.getElementById('subscription-form').classList.remove('hidden');
+        updateNavActiveState('nav-subscribe');
+      }
+
+      function updateNavActiveState(activeId) {
+        ['nav-report', 'nav-subscribe'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (id === activeId) {
+            btn.classList.remove('text-amber-100', 'hover:bg-blue-700');
+            btn.classList.add('bg-amber-600', 'text-white', 'hover:bg-amber-700');
+          } else {
+            btn.classList.remove('bg-amber-600', 'text-white', 'hover:bg-amber-700');
+            btn.classList.add('text-amber-100', 'hover:bg-blue-700');
+          }
+        });
+      }
+
+      function toggleFreeOptionFields() {
+        const useFree = document.getElementById('use-free-option').checked;
+        const premiumFields = document.getElementById('premium-fields');
+        const submitText = document.getElementById('submit-button-text');
+        
+        if (useFree) {
+          premiumFields.style.display = 'none';
+          submitText.textContent = 'Send Free Web3 Link';
+        } else {
+          premiumFields.style.display = 'block';
+          submitText.textContent = 'Proceed to Payment';
+        }
+      }
+
+      function handleLogout() {
+        stopOTPTimer();
+        currentUser = null;
+        isPremium = false;
+        promoCodeRedeemed = false;
+        updateUIForLoggedOutUser();
+        showToast('Logged out successfully');
+      }
+
+      // ============================================
+      // INITIALIZATION
+      // ============================================
+
+      document.addEventListener('DOMContentLoaded', function() {
+        // Set initial date
+        document.getElementById('incident-date').value = new Date().toISOString().split('T')[0];
+        
+        // Initialize agency info
+        updateAgencyInfo('western');
+        
+        // Get location
+        updateLocationDisplay();
+        
+        // Navigation event listeners
+        document.getElementById('nav-report').addEventListener('click', showIncidentForm);
+        document.getElementById('nav-subscribe').addEventListener('click', showSubscriptionForm);
+        document.getElementById('nav-login').addEventListener('click', openAuthModal);
+        document.getElementById('nav-logout').addEventListener('click', handleLogout);
+        document.getElementById('upgrade-link').addEventListener('click', (e) => {
+          e.preventDefault();
+          showSubscriptionForm();
+        });
+        document.getElementById('nav-refresh').addEventListener('click', () => window.location.reload());
+        
+        // Modal back button
+        document.getElementById('modal-back-btn').addEventListener('click', handleModalBack);
+        
+        // Form event listeners
+        document.getElementById('incident-report-form').addEventListener('submit', handleIncidentSubmit);
+        document.getElementById('subscription-signup-form').addEventListener('submit', handleSubscriptionSubmit);
+        document.getElementById('email-form').addEventListener('submit', handleEmailSubmit);
+        document.getElementById('code-form').addEventListener('submit', handleCodeVerification);
+        
+        // OTP controls
+        document.getElementById('resend-code-btn').addEventListener('click', async () => {
+          stopOTPTimer();
+          await sendVerificationCode(currentEmail);
+          startOTPTimer();
+          otpAttemptsRemaining = CONFIG.OTP_MAX_ATTEMPTS;
+          document.getElementById('otp-attempts').textContent = otpAttemptsRemaining;
+          showToast('Verification code resent');
+        });
+        
+        document.getElementById('cancel-otp-btn').addEventListener('click', returnToLogin);
+        
+        // Region change listener
+        document.getElementById('region').addEventListener('change', (e) => {
+          updateAgencyInfo(e.target.value);
+        });
+        
+        // Add email button
+        document.getElementById('add-email-btn').addEventListener('click', addEmailField);
+        
+        // Free option toggle
+        document.getElementById('use-free-option').addEventListener('change', toggleFreeOptionFields);
+        
+        // Modal close buttons
+
+document.getElementById('close-auth-modal').addEventListener('click', closeAuthModal);
+    document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
+    
+    // Promo code
+    document.getElementById('promo-code-input').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toLowerCase();
+    });
+    document.getElementById('apply-promo-btn').addEventListener('click', applyPromoCode);
+    
+    // Trial expiry modal buttons
+    document.getElementById('trial-subscribe-btn').addEventListener('click', () => {
+      document.getElementById('trial-expiry-modal').classList.add('hidden');
+      showSubscriptionForm();
+    });
+    document.getElementById('trial-logout-btn').addEventListener('click', () => {
+      document.getElementById('trial-expiry-modal').classList.add('hidden');
+      handleLogout();
+    });
+    
+    // Show incident form by default
+    showIncidentForm();
+    
+    console.log('Doxreporter initialized successfully');
+  });
+</script>
+</body>
+</html>
+

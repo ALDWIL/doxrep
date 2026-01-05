@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "doxrep",
+  "private_key_id": "cd41bd15ce104cb065bb45a25edc7941e5b86f35",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC2ZcHm1eAJ8kRH\nkAxHzIuXXJPBt85Rm4r/ZXW7hCS+4qCiB9DMAIwG07Kvwjtsy2Ks99GJmYqcifEE\nVSnBIL30lc1ZmsgAwiEUzjnYvycdXhuemM59whcVuQFYNSAwTN93XNR+Tqi8coAq\nUcvayiLoFPcohFwcyBtMY6oc/LeZkIMUhWmZQiYZOIiFuSYAJZc1whSCPbPZbxe5\nMdwL1gk00mnuHyR86OvoDJJo83XCQDkE8AD4c2AzMG3MaE1mhylnbIashecTFtGo\ngM8C1NDu1O/TuT7eKNqVCa47oiXtiAJrkDSrSoyJjFeGelbtML2cNk21aKgDywog\nL4IRYOWvAgMBAAECggEAV/1j2pdfknzIeptfiT2AM78p2oBwrAa0ubs43gKD9X//\njNrnW5qB8oMqxsYVA8lj61xLva0P5K9Y0UXCNFQ2vuiLXUghZtg/vDk2R70DQhQV\nj99YcetxVn3ey64pPpO/E+Z47gvFM8+qy3+VL5Fm4H3Is8eSZiIUpTfJJ120toPi\nzLUST5rRwmph2g/U/OsS0mrNqONjeqZYi8YCKrLD0teVjoz8xjR0q0ycj4vcso/t\nLQLVqqY/MO6Yw4QULaNJiz6tyYyCUAyTU3B8OxCAKXijs2/GsKV6JZfpSQnnrOyC\noCx02anPx6M9H5u51cLGfiJAm8Mt6gQXMjQIR6HWKQKBgQDp3EFfBUijiYFgyAmK\nZSU5yixhGk13O+Mvwf8bL5V2L9lhUkLvc8s6SbvXMjWgW/0jcU73MzphfWuqzpZe\nWZ1v4iIQ4E1ukQ6t+nB7eBGUAc1e9cv+bxElV7iPeHqq+HFLGCOcunQQdhQGUkX/\naGci+V0IUTkp21sI7/eMdoN79wKBgQDHqkTFGhCVl5jWOM7Rhfjls6t/g1Ci2f6F\nj/H2ndrkcN621Uo12AISKAYVXzNGV1Ri4tc7XtloXsPQDjjvEJwUCTfgaK6kzcAg\nib6xLLkMvTd1wazs/vrse5SexNAIJrpKBedyCljX7ZlKk9jMYgyaYb2NU9zznJbQ\nMXvlVQRGCQKBgQCzmJzzdkFUplMfmkAJcqfl+6edYu++89UDZj6eCCsGOrT8koop\nDooyV1HUcBDS+BItV+VG3qalHAbFhCXii3vm4ok64KdWlDvrzHr5tzn4qnGnzag9\n29oVDYsFU4cRKf8HpqAiyuY7hhLWz/RFs04Rg+O4cXgu9vCwqmk4DAPp/QKBgQCT\nTZzaxTYDBwqs0NBUZ8COxpT5yAlPfAB4zQ+34BHDgznsLUNIogo1Fu4WClwrwvXw\n1mXv2TQP+goAjt2WEez0IzDkEJb34wuhdb4HvHTxXw9xgudvGVZJ7Yph79WCjf/V\n6LEtw1B0TUhQau8BKj0eEInloD9cQuRIyJkdQjGa8QKBgQDodvsWSYyE7oBNC0a5\niCadqckMdBKWQ+5KDsBlSlG6eLL95O0HsM8LuwcFZhPChNdQhD4lwsenGV5gsJ01\n/5u69xkCPDnbsXbeGIKFNVHWvw3fsQgG/NH65zf6jVbTYWEE4VD7NZXcdzXfoXzT\n1ALBgsxWUPeWyZfmWqielcq9CA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "doxreporter-netlify@doxrep.iam.gserviceaccount.com",
+  "client_id": "107307130235134468082",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/doxreporter-netlify%40doxrep.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

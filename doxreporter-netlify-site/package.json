@@ -1,0 +1,10 @@
+{
+  "name": "doxreporter-functions",
+  "version": "1.0.0",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0",
+    "@google-cloud/storage": "^7.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.8"
+  }
+}
