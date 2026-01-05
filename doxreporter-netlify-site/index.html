@@ -737,27 +737,27 @@
       function validatePromoCodeFormat(code) {
         // Must be 8-16 characters
         if (code.length < 8 || code.length > 16) return false;
-        
-        // Client-side regex pre-check
+
+        // Client-side regex pre-check (lowercase only after normalization)
         const promoRegex = /^[a-z0-9!@#$%&*?]{8,16}$/;
         if (!promoRegex.test(code)) return false;
 
         const consonants = code.match(/[bcdfghjklmnpqrstvwxz]/g) || [];
         const vowels = code.match(/[aeiou]/g) || [];
-        const uppercase = code.match(/[A-Z]/g) || [];
         const digits = code.match(/[0-9]/g) || [];
         const symbols = code.match(/[!@#$%&*?]/g) || [];
 
-        // Must contain 'p' (trial) or 'n' (lifetime)
+        // Must contain 'p' (trial) or 'n' (lifetime) - lowercase only
         const hasP = code.includes('p');
         const hasN = code.includes('n');
-        
-        return consonants.length >= 3 && (hasP || hasN) && vowels.length >= 2 && 
+
+        return consonants.length >= 3 && (hasP || hasN) && vowels.length >= 2 &&
                digits.length >= 2 && symbols.length >= 1;
       }
 
       function isTrialPromoCode(code) {
-        return code.includes('p');
+        // Check for 'p' in lowercase normalized code
+        return code.toLowerCase().includes('p');
       }
 
       function lockPromoInput() {
@@ -831,16 +831,22 @@
             document.getElementById('promo-success').textContent = result.message;
             document.getElementById('promo-success').classList.remove('hidden');
             promoCodeRedeemed = true;
+
+            // Set isPremium based on whether it's a trial or full premium
+            isTrialSubscription = result.isTrial || false;
             isPremium = true;
+
+            // Hide promo field permanently for this session
             hidePromoField();
-            
+
             setTimeout(() => {
               closePaymentModal();
               updateUIForLoggedInUser();
-              showToast('Premium access activated!');
-              
+
               if (isTrialSubscription) {
-                showToast('Your 1-month trial has started. You will be prompted to subscribe after the trial period.', 'warning');
+                showToast('1-month free trial activated! You will be prompted to subscribe after the trial period.', 'warning');
+              } else {
+                showToast('Premium access activated!');
               }
             }, 2000);
           } else {
@@ -940,16 +946,16 @@
         event.preventDefault();
         const email = document.getElementById('auth-email').value;
         const submitBtn = document.getElementById('send-code-btn');
-        
+
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending...';
-        
+
         try {
           currentEmail = email;
           const result = await sendVerificationCode(email);
-          
+
           if (result.success) {
-            modalStack.push('email-step');
+            modalStack.push('code-step');
             document.getElementById('email-step').classList.add('hidden');
             document.getElementById('code-step').classList.remove('hidden');
             document.getElementById('email-display').textContent = email;
@@ -1050,31 +1056,45 @@
 
       function handleModalBack() {
         if (modalStack.length === 0) return;
-        
-        const currentModal = modalStack.pop();
-        
-        if (currentModal === 'code-step') {
+
+        const currentModal = modalStack[modalStack.length - 1];
+
+        if (currentModal === 'email-step') {
+          // At email step, just close modal
+          closeAuthModal();
+          modalStack = [];
+        } else if (currentModal === 'code-step') {
           // Go back from OTP to email
+          modalStack.pop();
           stopOTPTimer();
           document.getElementById('code-step').classList.add('hidden');
           document.getElementById('email-step').classList.remove('hidden');
+          otpAttemptsRemaining = CONFIG.OTP_MAX_ATTEMPTS;
+          document.getElementById('otp-attempts').textContent = otpAttemptsRemaining;
+          document.getElementById('auth-error').classList.add('hidden');
           if (modalStack.length === 0) {
             document.getElementById('modal-back-btn').classList.add('hidden');
           }
         } else if (currentModal === 'payment-modal') {
           // Go back from payment to subscription form
+          modalStack.pop();
           closePaymentModal();
           showSubscriptionForm();
+          if (modalStack.length === 0) {
+            document.getElementById('modal-back-btn').classList.add('hidden');
+          }
         }
       }
 
       function openAuthModal() {
-        modalStack = [];
+        modalStack = ['email-step'];
         document.getElementById('auth-modal').classList.remove('hidden');
         document.getElementById('email-step').classList.remove('hidden');
         document.getElementById('code-step').classList.add('hidden');
         document.getElementById('auth-error').classList.add('hidden');
         document.getElementById('modal-back-btn').classList.add('hidden');
+        otpAttemptsRemaining = CONFIG.OTP_MAX_ATTEMPTS;
+        document.getElementById('otp-attempts').textContent = otpAttemptsRemaining;
       }
 
       function closeAuthModal() {
@@ -1091,6 +1111,9 @@
         document.getElementById('payment-modal').classList.add('hidden');
         if (modalStack.length > 0 && modalStack[modalStack.length - 1] === 'payment-modal') {
           modalStack.pop();
+        }
+        if (modalStack.length === 0) {
+          document.getElementById('modal-back-btn').classList.add('hidden');
         }
       }
 
@@ -1250,11 +1273,9 @@
           });
           
           const result = await response.json();
-          
+
           if (result.success) {
-            modalStack.push('payment-modal');
             document.getElementById('payment-modal').classList.remove('hidden');
-            document.getElementById('modal-back-btn').classList.remove('hidden');
             initializePayPalButtons(result.userId);
           }
           
@@ -1277,10 +1298,16 @@
           return;
         }
 
-        // Check if promo was already redeemed
+        // Check if promo was already redeemed - hide field completely
         if (promoCodeRedeemed) {
           hidePromoField();
         }
+
+        // Show back button for payment modal
+        if (!modalStack.includes('payment-modal')) {
+          modalStack.push('payment-modal');
+        }
+        document.getElementById('modal-back-btn').classList.remove('hidden');
 
         document.getElementById('paypal-button-container').innerHTML = '';
 
